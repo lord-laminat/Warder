@@ -6,10 +6,11 @@ rem ====== admin variables ======
 rem =============================
 
 set CloudURL="https://webdav.cloud.mail.ru/"
+
 set CloudPassword="vmxE2idv7wXdsdeR0f6D"
 set CloudUser="rychkin06@mail.ru"
 
-set LocalDriveLetter="O"
+set LocalDriveLetter="Y"
 
 rem =============================
 rem ======== open cloud =========
@@ -29,7 +30,7 @@ rem =============================
 rem === main process starting ===
 rem =============================
 
-Powershell.exe -executionpolicy remotesigned -File "screenshot.ps1" "%DailyDirFullPath%/"
+Powershell.exe -executionpolicy remotesigned -File "screenshot.ps1" %LocalDriveLetter%
 
 rem =============================
 rem ======= close cloud =========
