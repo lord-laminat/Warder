@@ -46,7 +46,10 @@ def listener_func(server: socket.socket, user_list_json: dict) -> None:
         full_user_list = {**unvalidated_client_dict, **validated_user_list}
         for user in full_user_list:
             print("Listen", user)
-            msg_port, data = full_user_list[user]["client"].recv(1024).decode("utf-8").split("::")
+            some_shit = full_user_list[user]["client"].recv(1024).decode("utf-8")
+            print(some_shit)
+            msg_port, data = some_shit.split("::")
+            
             if data[:1] == '/':
                 print(f"Starting validate {msg_port}")
 
@@ -81,12 +84,13 @@ def listener_func(server: socket.socket, user_list_json: dict) -> None:
 
             else:
                 print(f"{getUsername(validated_user_list, port=msg_port)}: {data}")
+            
+            full_user_list = {**unvalidated_client_dict, **validated_user_list}
 
 def acceptor_func(server) -> None:
     global unvalidated_client_dict
     while True:
         client, client_address = server.accept()
-        print(client, client_address)
         unvalidated_client_dict = {**unvalidated_client_dict, str(client_address[1]): {"client": client}}
 
 def sender_func() -> None:

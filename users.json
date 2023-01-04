@@ -1,1 +1,10 @@
-{"1": {"username": "User1", "groups": []}, "2": {"username": "User2", "groups": []}, "3": {"username": "User3", "groups": []}, "4": {"username": "User4", "groups": []}, "5": {"username": "User-5", "groups": []}, "6": {"username": "User-6", "groups": []}, "7": {"username": "User-7", "groups": []}, "8": {"username": "User-8", "groups": []}, "9": {"username": "User-9", "groups": []}, "10": {"username": "User-10", "groups": []}, "11": {"username": "User-11", "groups": []}, "12": {"username": "User-12", "groups": []}, "13": {"username": "User-13", "groups": []}, "14": {"username": "User-14", "groups": []}, "15": {"username": "User-15", "groups": []}, "16": {"username": "User-16", "groups": []}, "17": {"username": "User-17", "groups": []}, "18": {"username": "User-18", "groups": []}, "19": {"username": "User-19", "groups": []}, "20": {"username": "User-20", "groups": []}}
+{
+    "1": {
+        "username": "User1",
+        "groups": []
+    },
+    "2": {
+        "username": "User2",
+        "groups": []
+    }
+}
