@@ -1,7 +1,6 @@
 import yadisk
 import os
 import datetime
-import time
 
 def mkdir(disk: yadisk.YaDisk, full_path: str) -> None:
     path = 'disk:'

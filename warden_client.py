@@ -34,15 +34,15 @@ def userValidate(port):
             client.send((f"{port}::Client "+str(configs["client_id"])+" has not passed validation yet").encode('utf-8'))
 
 def screenshotTaker(disk: yadisk.YaDisk, last_time: float) -> None:
-    if time() - last_time >= configs["screenshot_delay"]:
-        with mss() as file:
-            file.shot()
+    while True:
+        if time() - last_time >= configs["screenshot_delay_seconds"]:
+            with mss() as file:
+                file.shot()
 
-        # upload to "disk:/warden/<login>/screenshots/<date>/<>
-        disk.upload("monitor-1.png", f"disk:/warden/{os.getlogin()}/screenshots/{str(datetime.now()).split()[0]}/screenshot_{datetime.now().hour}-{datetime.now().minute}.png")
-        print(f"Screenshot {datetime.now().hour}-{datetime.now().minute} uploaded!")
-        last_time = time()
-    screenshotTaker(last_time)
+            # upload to "disk:/warden/<login>/screenshots/<date>/<>
+            disk.upload("monitor-1.png", f"disk:/warden/{os.getlogin()}/screenshots/{str(datetime.now()).split()[0]}/screenshot_{datetime.now().hour}-{datetime.now().minute}-{datetime.now().second}.png")
+            print(f"Screenshot {datetime.now().hour}-{datetime.now().minute}-{datetime.now().second} uploaded!")
+            last_time = time()
 
 def main(client: socket.socket, configs: dict, port: str):
     while True:
@@ -66,20 +66,25 @@ def main(client: socket.socket, configs: dict, port: str):
             sender.join()
             client.send((f"{port}::Client "+str(configs["client_id"])+" successfully stopped").encode('utf-8'))
             exit()
+        else:
+            print(f"New server's message:\n{data}")
 
 def sender_func(client: socket.socket, port: str | int) -> None:
     while True:
-        client.send(f"{port}::{input('> ')}".encode("utf-8"))
+        try:
+            client.send(f"{port}::{input('> ')}".encode("utf-8"))
+        except ValueError:
+            print("[EXCEPTION] Incorrect message syntax")
 
 port = client.getsockname()[1]
 
 screenshoter = Thread(target=screenshotTaker, args=(disk, time()))
-main_loop    = Thread(target=main, args=(client, configs, port))
+listener    = Thread(target=main, args=(client, configs, port))
 sender       = Thread(target=sender_func, args=(client, port))
 
 # validation 
 userValidate(port)
 utils.reposSetup(disk)
 
-main_loop.start()
+listener.start()
 sender.start()
