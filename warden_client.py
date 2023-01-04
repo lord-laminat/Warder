@@ -17,6 +17,7 @@ disk = yadisk.YaDisk(token=configs["disk_token"])
 
 def userValidate(port):
     client.send(f"{port}::/{configs['client_id']}".encode("utf-8"))
+    print("Starting validation...")
     while True:
         data: str = client.recv(1024).decode("utf-8")
         if data == 'a':
@@ -79,7 +80,7 @@ def sender_func(client: socket.socket, port: str | int) -> None:
 port = client.getsockname()[1]
 
 screenshoter = Thread(target=screenshotTaker, args=(disk, time()))
-listener    = Thread(target=main, args=(client, configs, port))
+listener     = Thread(target=main, args=(client, configs, port))
 sender       = Thread(target=sender_func, args=(client, port))
 
 # validation 

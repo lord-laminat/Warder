@@ -45,8 +45,10 @@ def listener_func(server: socket.socket, user_list_json: dict) -> None:
 
         full_user_list = {**unvalidated_client_dict, **validated_user_list}
         for user in full_user_list:
+            print("Listen", user)
             msg_port, data = full_user_list[user]["client"].recv(1024).decode("utf-8").split("::")
             if data[:1] == '/':
+                print(f"Starting validate {msg_port}")
 
                 if not data == "/None":
                     user_id = data[1:]
@@ -74,6 +76,7 @@ def listener_func(server: socket.socket, user_list_json: dict) -> None:
                     msgSend(msg_port, f"r{user_id}", unvalidated_client_dict[msg_port]["client"])
                     print(f"New User-{user_id} registered and connected on {msg_port}")
                 
+                del unvalidated_client_dict[user]
                 validated_user_list = {**validated_user_list, **new_user}
 
             else:
@@ -83,6 +86,7 @@ def acceptor_func(server) -> None:
     global unvalidated_client_dict
     while True:
         client, client_address = server.accept()
+        print(client, client_address)
         unvalidated_client_dict = {**unvalidated_client_dict, str(client_address[1]): {"client": client}}
 
 def sender_func() -> None:
