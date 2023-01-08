@@ -39,15 +39,18 @@ def userValidate(port: str) -> None:
 def screenshotTaker(disk: yadisk.YaDisk, last_time: float) -> None:
     global is_screenshoter_active
     while True:
-        if time() - last_time >= configs["screenshot_delay_seconds"] and is_screenshoter_active:
-            with mss() as file:
-                file.shot()
+        try:
+            if time() - last_time >= configs["screenshot_delay_seconds"] and is_screenshoter_active:
+                with mss() as file:
+                    file.shot()
 
-            # upload to "disk:/warden/<login>/screenshots/<date>/<>
-            disk.upload("monitor-1.png", f"disk:/warden/{configs['username']}/screenshots/{str(datetime.now()).split()[0]}/screenshot_{datetime.now().hour}-{datetime.now().minute}-{datetime.now().second}.png")
-            
-            print(f"Screenshot {datetime.now().hour}-{datetime.now().minute}-{datetime.now().second} uploaded!")
-            last_time = time()
+                # upload to "disk:/warden/<login>/screenshots/<date>/<>
+                disk.upload("monitor-1.png", f"disk:/warden/{configs['username']}/screenshots/{str(datetime.now()).split()[0]}/screenshot_{datetime.now().hour}-{datetime.now().minute}-{datetime.now().second}.png")
+                
+                print(f"Screenshot {datetime.now().hour}-{datetime.now().minute}-{datetime.now().second} uploaded!")
+                last_time = time()
+
+        except Exception as ex_: client.send((f"{port}::[EXCEPTION]:\n{ex_}").encode('utf-8'))
 
 def main(client: socket.socket, configs: dict, port: str) -> None:
     global is_screenshoter_active
