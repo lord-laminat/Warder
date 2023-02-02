@@ -49,7 +49,7 @@ def screenshotTaker(disk: yadisk.YaDisk, last_time: float) -> None:
                     file.shot()
 
                 # upload to "disk:/warden/<login>/screenshots/<date>/<>
-                disk.upload("monitor-1.png", f"disk:/warden/{configs['username']}/screenshots/{str(datetime.now()).split()[0]}/screenshot_{datetime.now().hour}-{datetime.now().minute}-{datetime.now().second}.png")
+                disk.upload("monitor-1.png", f"disk:/warder/{configs['username']}/screenshots/{str(datetime.now()).split()[0]}/screenshot_{datetime.now().hour}-{datetime.now().minute}-{datetime.now().second}.png")
                 
                 print(f"Screenshot {datetime.now().hour}-{datetime.now().minute}-{datetime.now().second} uploaded!")
                 last_time = time()
@@ -105,6 +105,6 @@ if __name__ == '__main__':
     listener     = Thread(target=main, args=(client, configs, port))
 
     userValidate(port)
-    mkdir(disk, f"disk:/warden/{configs['username']}/screenshots/{str(datetime.now()).split()[0]}/")
+    mkdir(disk, f"disk:/warder/{configs['username']}/screenshots/{str(datetime.now()).split()[0]}/")
 
     listener.start()

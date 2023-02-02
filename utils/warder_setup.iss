@@ -1,5 +1,5 @@
 #define MyAppName "Warder"
-#define MyAppVersion "0.1.3"
+#define MyAppVersion "0.1.4"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -16,8 +16,13 @@ OutputBaseFilename=warder-setup
 Compression=lzma/ultra64
 SolidCompression=yes
 InternalCompressLevel=ultra64
-AppPublisher=Yopta Game Maker
+AppPublisher=Clap-Clap Duck
 VersionInfoProductVersion=0.1.3
+UsePreviousAppDir=False
+AppUpdatesURL=https://github.com/lord-laminat/Warder/tree/warder-v0.1.0
+VersionInfoVersion=0.1.4
+VersionInfoCompany=Clap-Clap Duck
+VersionInfoProductName=Warder
 
 [Components]
 Name: server_files; Description: "Server files"; ExtraDiskSpaceRequired: 4800
