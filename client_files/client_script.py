@@ -1,11 +1,15 @@
 import json
 import yadisk
 import socket
-import os
+#import os
 from datetime import datetime
 from time import time
 from mss import mss
 from threading import Thread
+
+#DIR_PATH = "\\".join(__file__.split('\\')[:-1]) + "\\"
+DIR_PATH = ''
+RUNNING = True
 
 def mkdir(disk: yadisk.YaDisk, full_path: str) -> None:
     path = 'disk:'
@@ -37,8 +41,8 @@ def userValidate(port: str) -> None:
             client.send((f"{port}::Client "+str(configs["client_id"])+" has not passed validation yet").encode('utf-8'))
 
 def screenshotTaker(disk: yadisk.YaDisk, last_time: float) -> None:
-    global is_screenshoter_active
-    while True:
+    global is_screenshoter_active, RUNNING
+    while RUNNING:
         try:
             if time() - last_time >= configs["screenshot_delay_seconds"] and is_screenshoter_active:
                 with mss() as file:
@@ -53,57 +57,54 @@ def screenshotTaker(disk: yadisk.YaDisk, last_time: float) -> None:
         except Exception as ex_: client.send((f"{port}::[EXCEPTION]:\n{ex_}").encode('utf-8'))
 
 def main(client: socket.socket, configs: dict, port: str) -> None:
-    global is_screenshoter_active
-    while True:
+    global is_screenshoter_active, RUNNING
+    while RUNNING:
         data: str = client.recv(1024).decode("utf-8")
         if data == '1':
             if is_screenshoter_active:
-                client.send((f"{port}::Screenshoter "+str(configs["client_id"])+" is already working").encode('utf-8'))
+                client.send((f"{port}::Screenshoter {configs['client_id']} is already working").encode('utf-8'))
             else:
                 is_screenshoter_active = True
-                screenshoter.start()
-                client.send((f"{port}::Screenshoter "+str(configs["client_id"])+" is launched successfully").encode('utf-8'))
+                try: 
+                    screenshoter.start()
+                except: ...
+                client.send((f"{port}::Screenshoter {configs['client_id']} is launched successfully").encode('utf-8'))
 
         elif data == '0':
             if not is_screenshoter_active:
-                client.send((f"{port}::Screenshoter "+str(configs["client_id"])+" is already stopped").encode('utf-8'))
+                client.send((f"{port}::Screenshoter {configs['client_id']} is already stopped").encode('utf-8'))
             else:
                 is_screenshoter_active = False
-                client.send((f"{port}::Screenshoter "+str(configs["client_id"])+" is stopped successfully").encode('utf-8'))
+                client.send((f"{port}::Screenshoter {configs['client_id']} is stopped successfully").encode('utf-8'))
                 print("[Server]: Screenshoter was stopped by host")
         
         elif data == 'e':
-            screenshoter.join()
-            sender.join()
-            client.send((f"{port}::Client "+str(configs["client_id"])+" successfully stopped").encode('utf-8'))
+            RUNNING = False
+            client.send((f"{port}::Client {configs['client_id']} successfully stopped").encode('utf-8'))
             exit()
         else:
-            print(f"New server's message:\n{data}")
-
-def sender_func(client: socket.socket, port: str) -> None:
-    while True:
-        try:
-            client.send(f"{port}::{input()}".encode("utf-8"))
-        except ValueError:
-            print("[EXCEPTION] Incorrect message syntax")
+            print(f"[Server]: {data}")
 
 
-with open('configs.json', 'r', encoding='utf-8') as file:
-    configs = json.load(file)
+if __name__ == '__main__':
+    with open(DIR_PATH + 'configs.json', 'r', encoding='utf-8') as file:
+        configs = json.load(file)
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((configs["host_IPv4"], 1234))
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        client.connect((configs["host_IPv4"], 1234))
+    except ConnectionRefusedError as e:
+        print(e)
+        exit()
 
-port = client.getsockname()[1]
-disk = yadisk.YaDisk(token=configs["disk_token"])
-is_screenshoter_active = False
+    port = client.getsockname()[1]
+    disk = yadisk.YaDisk(token=configs["disk_token"])
+    is_screenshoter_active = False
 
-screenshoter = Thread(target=screenshotTaker, args=(disk, time()))
-listener     = Thread(target=main, args=(client, configs, port))
-sender       = Thread(target=sender_func, args=(client, port))
+    screenshoter = Thread(target=screenshotTaker, args=(disk, time()))
+    listener     = Thread(target=main, args=(client, configs, port))
 
-userValidate(port)
-mkdir(disk, f"disk:/warden/{configs['username']}/screenshots/{str(datetime.now()).split()[0]}/")
+    userValidate(port)
+    mkdir(disk, f"disk:/warden/{configs['username']}/screenshots/{str(datetime.now()).split()[0]}/")
 
-listener.start()
-sender.start()
+    listener.start()

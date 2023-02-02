@@ -2,6 +2,14 @@ import socket
 import json
 from threading import Thread
 
+#DIR_PATH = "\\".join(__file__.split('\\')[:-1]) + "\\"
+DIR_PATH = ''
+RUNNING = True
+
+# +-----------+
+# | FUNCTIONS |
+# +-----------+
+
 def msgSend(port, msg: str, user_list: dict | socket.socket) -> None:
     if isinstance(user_list, dict):
         for user in user_list:
@@ -15,11 +23,11 @@ def msgSend(port, msg: str, user_list: dict | socket.socket) -> None:
         
     else: raise TypeError("Incorrect 'user_list' input")
 
-def listener_func(server: socket.socket, user_list_json: dict) -> None:
-    global unvalidated_client_dict, validated_user_list
-    server.listen()
 
-    while True:
+def listener_func(server: socket.socket, user_list_json: dict) -> None:
+    global unvalidated_client_dict, validated_user_list, RUNNING
+    server.listen()
+    while RUNNING:
         full_user_list = {**unvalidated_client_dict, **validated_user_list}
         
         for user in full_user_list:
@@ -45,7 +53,7 @@ def listener_func(server: socket.socket, user_list_json: dict) -> None:
                     new_user = {msg_port: {**(user_list_json[user_id]), "socket": unvalidated_client_dict[msg_port]["socket"], "user_id": user_id}}
 
                     # save new user into json
-                    with open("users.json", "w", encoding='utf-8') as file:
+                    with open(f"{DIR_PATH}users.json", "w", encoding='utf-8') as file:
                         json.dump(user_list_json, file)
 
                     msgSend(msg_port, f"r{user_id}", unvalidated_client_dict[msg_port]["socket"])
@@ -59,14 +67,17 @@ def listener_func(server: socket.socket, user_list_json: dict) -> None:
             
             full_user_list = {**unvalidated_client_dict, **validated_user_list}
 
+
 def acceptor_func(server) -> None:
-    global unvalidated_client_dict
-    while True:
+    global unvalidated_client_dict, RUNNING
+    while RUNNING:
         client, client_address = server.accept()
         unvalidated_client_dict = {**unvalidated_client_dict, str(client_address[1]): {"socket": client}}
 
+
 def sender_func() -> None:
-    while True:
+    global RUNNING
+    while RUNNING:
         try:
             input_data = input()
             port, msg = input_data.split('::')
@@ -74,23 +85,31 @@ def sender_func() -> None:
         except KeyError:
             print(f"[EXCEPTION] <INVALID_PORT> Can't send message to {port}")
         except ValueError:
-            print(f"[EXCEPTION] <INVALID_MESSAGE_SYNTAX>: {input_data}")
+            print(f"[EXCEPTION] <INVALID_MESSAGE_SYNTAX>")
+        except EOFError:
+            RUNNING = False
 
 
-with open('users.json', 'r', encoding='utf-8') as file:
-    user_list_json: dict = json.load(file)
+# +------+
+# | MAIN |
+# +------+
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind((socket.gethostbyname(socket.gethostname()), 1234))
-print("Server started with IPv4:", socket.gethostbyname(socket.gethostname()))
+if __name__ == '__main__':
 
-unvalidated_client_dict = {}
-validated_user_list     = {}
+    with open(f'{DIR_PATH}users.json', 'r', encoding='utf-8') as file:
+        user_list_json: dict = json.load(file)
 
-listener = Thread(target=listener_func, args=(server, user_list_json))
-acceptor = Thread(target=acceptor_func, args=(server,))
-sender   = Thread(target=sender_func, args=())
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind((socket.gethostbyname(socket.gethostname()), 1234))
+    print("Server started with IPv4:", socket.gethostbyname(socket.gethostname()))
 
-listener.start()
-acceptor.start()
-sender.start()
+    unvalidated_client_dict = {}
+    validated_user_list     = {}
+
+    listener = Thread(target=listener_func, args=(server, user_list_json))
+    acceptor = Thread(target=acceptor_func, args=(server,))
+    sender   = Thread(target=sender_func, args=())
+
+    listener.start()
+    acceptor.start()
+    sender.start()
